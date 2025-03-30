@@ -1,8 +1,9 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Slideshow</title>
+  <title>Slideshow Principal</title>
   <style>
     body {
       margin: 0;
@@ -20,29 +21,38 @@
   </style>
 </head>
 <body>
-  <img id="slideshow" src="" alt="Slideshow">
 
-  <script>
-    const imageFolder = 'imagens/';
+<img id="slideshow" src="" alt="Slideshow">
 
-    // Lista de imagens (ordem alfabética)
-    const images = [
-      'imagem1.jpg',
-      'imagem2.jpg',
-      'imagem3.jpg',
-      // Adiciona aqui os nomes dos ficheiros por ordem alfabética
-    ];
+<script>
+  fetch('config.html')
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const configuracao = doc.querySelector('script').textContent.match(/const configuracao = ([\s\S]+);/)[1];
+      return JSON.parse(configuracao);
+    })
+    .then(config => {
+      const images = config.imagens;
+      const intervalo = config.intervalo * 1000; // Converte segundos para milissegundos
 
-    let current = 0;
-    const imgElement = document.getElementById('slideshow');
+      const imgElement = document.getElementById('slideshow');
+      let current = 0;
 
-    function showNextImage() {
-      imgElement.src = imageFolder + images[current];
-      current = (current + 1) % images.length;
-    }
+      function showNextImage() {
+        imgElement.src = images[current];
+        current = (current + 1) % images.length;
+      }
 
-    showNextImage();
-    setInterval(showNextImage, 5000); // Troca a cada 5 segundos
-  </script>
+      if(images.length === 1) {
+        imgElement.src = images[0]; // Mostra só uma imagem fixa
+      } else {
+        showNextImage();
+        setInterval(showNextImage, intervalo);
+      }
+    });
+</script>
+
 </body>
 </html>

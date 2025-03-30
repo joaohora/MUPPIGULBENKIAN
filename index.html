@@ -1,57 +1,49 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Slideshow Principal</title>
+  <title>Digital Signage Auto</title>
   <style>
-    body {
-      margin: 0;
-      background-color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    img {
-      max-width: 100vw;
-      max-height: 100vh;
-      object-fit: contain;
-    }
+    body { margin:0; background:black; display:flex; align-items:center; justify-content:center; height:100vh; }
+    img { max-width:100vw; max-height:100vh; object-fit:contain; }
   </style>
 </head>
 <body>
 
-<img id="slideshow" src="" alt="Slideshow">
+<img id="slide" src="">
 
 <script>
-  fetch('config.html')
-    .then(response => response.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const configuracao = doc.querySelector('script').textContent.match(/const configuracao = ([\s\S]+);/)[1];
-      return JSON.parse(configuracao);
-    })
-    .then(config => {
-      const images = config.imagens;
-      const intervalo = config.intervalo * 1000; // Converte segundos para milissegundos
+const user = 'joaohora'; // O teu utilizador GitHub
+const repo = 'digitalsignage'; // O teu repositorio
+const pasta = 'imagens'; // Pasta com imagens
+const intervalo = 5000; // 5 segundos
 
-      const imgElement = document.getElementById('slideshow');
-      let current = 0;
+fetch(`https://api.github.com/repos/${user}/${repo}/contents/${pasta}`)
+  .then(r => r.json())
+  .then(data => {
+    const imgs = data
+      .filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|gif)$/i))
+      .map(f => f.download_url)
+      .sort(); // ordem alfabetica
 
-      function showNextImage() {
-        imgElement.src = images[current];
-        current = (current + 1) % images.length;
-      }
+    const slide = document.getElementById('slide');
+    let i = 0;
 
-      if(images.length === 1) {
-        imgElement.src = images[0]; // Mostra só uma imagem fixa
-      } else {
-        showNextImage();
-        setInterval(showNextImage, intervalo);
-      }
-    });
+    function mostrar(){
+      slide.src = imgs[i];
+      i = (i + 1) % imgs.length;
+    }
+
+    if(imgs.length === 0){
+      slide.alt = "Sem imagens na pasta!";
+    } else if(imgs.length === 1){
+      slide.src = imgs[0];
+    } else {
+      mostrar();
+      setInterval(mostrar, intervalo);
+    }
+  })
+  .catch(() => slide.alt = "Erro ao carregar imagens!");
 </script>
 
 </body>
